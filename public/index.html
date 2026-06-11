@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diff Checker // Web Version Detector</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tailwind is NOT used, only Vanilla CSS in style.css -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+
+    <!-- Sidebar / Brand area -->
+    <aside class="app-sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <div class="logo-inner"></div>
+        </div>
+        <div class="brand-text">
+          <h1>DiffPulse</h1>
+          <span>Web Version Detector</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="nav-dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" id="nav-activity">
+          <i data-lucide="activity"></i>
+          <span>Activity Log</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-stats">
+        <div class="stat-card">
+          <span class="stat-label">Monitored</span>
+          <span class="stat-value" id="stat-monitored-count">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Active</span>
+          <span class="stat-value" id="stat-active-count">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Last Tick</span>
+          <span class="stat-value" id="stat-last-tick">Never</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator-container">
+          <span class="status-dot pulsing"></span>
+          <span class="status-text">Background Daemon Active</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+
+      <!-- Top header bar -->
+      <header class="main-header">
+        <div class="header-title">
+          <h2>Website Monitoring Console</h2>
+          <p>Real-time change detection and comparison engine</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="btn-add-site">
+            <i data-lucide="plus"></i>
+            <span>Add Website</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard View -->
+      <section class="content-view active" id="view-dashboard">
+        <div class="section-title">
+          <h3>Monitored Targets</h3>
+          <span class="badge" id="website-count-badge">0 Sites</span>
+        </div>
+
+        <!-- Grid of monitored websites -->
+        <div class="websites-grid" id="websites-grid">
+          <!-- Dynamically populated website cards -->
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading your monitors...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activity Log View -->
+      <section class="content-view" id="view-activity">
+        <div class="section-title">
+          <h3>Global Activity Feed</h3>
+          <button class="btn btn-secondary btn-sm" id="btn-clear-activity-cache" style="display:none;">Clear
+            Logs</button>
+        </div>
+        <div class="activity-timeline" id="activity-timeline">
+          <!-- Dynamically populated logs list -->
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading activity logs...</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Slide-over Drawer for Log History & Diffs -->
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <aside class="drawer" id="details-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title-area">
+        <h3 id="drawer-site-name">Website Details</h3>
+        <a href="#" target="_blank" id="drawer-site-link" class="site-link">
+          <span id="drawer-site-url">https://example.com</span>
+          <i data-lucide="external-link"></i>
+        </a>
+      </div>
+      <button class="btn-close" id="btn-close-drawer">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Tabs inside the drawer -->
+      <div class="drawer-tabs">
+        <button class="tab-btn active" data-tab="tab-history">History & Diffs</button>
+        <button class="tab-btn" data-tab="tab-config">Settings</button>
+      </div>
+
+      <!-- Tab: History & Diffs -->
+      <div class="tab-content active" id="tab-history">
+        <div class="history-layout">
+          <!-- Left: list of timestamps of changes -->
+          <div class="history-sidebar">
+            <h4>Change Versions</h4>
+            <div class="history-list" id="drawer-history-list">
+              <!-- Dynamically populated list of logs -->
+            </div>
+          </div>
+
+          <!-- Right: Details of selected change -->
+          <div class="history-detail">
+            <div class="diff-header">
+              <div class="diff-meta">
+                <span class="diff-type-badge" id="selected-diff-type">Change</span>
+                <span class="diff-time" id="selected-diff-time">2026-06-11 12:00:00</span>
+              </div>
+              <div class="diff-summary-stat" id="selected-diff-summary">+2 lines, -1 lines</div>
+            </div>
+
+            <div class="diff-container" id="selected-diff-container">
+              <!-- Visual diff code block -->
+              <div class="diff-empty-state">
+                <i data-lucide="git-commit"></i>
+                <p>Select a version from the left panel to inspect changes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Settings / Config -->
+      <div class="tab-content" id="tab-config">
+        <form class="config-form" id="edit-site-form">
+          <input type="hidden" id="edit-site-id">
+
+          <div class="form-group">
+            <label for="edit-site-name-input">Friendly Name</label>
+            <input type="text" id="edit-site-name-input" required placeholder="e.g. My Website Home">
+          </div>
+
+          <div class="form-group">
+            <label for="edit-site-url-input">Website URL</label>
+            <input type="url" id="edit-site-url-input" required placeholder="https://example.com">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-site-interval">Check Interval (Minutes)</label>
+              <input type="number" id="edit-site-interval" min="1" max="1440" required value="10">
+            </div>
+
+            <div class="form-group">
+              <label for="edit-site-selector">CSS Selector <span class="optional">(Optional)</span></label>
+              <input type="text" id="edit-site-selector" placeholder="e.g. #content, article, body">
+              <small class="form-help">Leave blank to monitor the entire body text. Specify a selector to ignore
+                sidebars or headers.</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-site-whatsapp">WhatsApp Number <span class="optional">(Optional)</span></label>
+            <div class="input-with-button" style="display: flex; gap: 8px;">
+              <input type="text" id="edit-site-whatsapp" placeholder="e.g. 919876543210 (Include country code without +)" style="flex: 1;">
+              <button type="button" class="btn btn-secondary" id="btn-test-whatsapp" style="padding: 0 16px; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; height: var(--input-height, 42px); flex-shrink: 0; white-space: nowrap;">
+                <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                <span>Test</span>
+              </button>
+            </div>
+            <small class="form-help">Enter target WhatsApp number to receive change alerts for this website.</small>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" class="btn btn-danger" id="btn-delete-site">
+              <i data-lucide="trash-2"></i>
+              <span>Delete Monitor</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Add Website Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add New Website Monitor</h3>
+        <button class="btn-close" id="btn-close-modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="add-site-form">
+          <div class="form-group">
+            <label for="add-site-name">Friendly Name</label>
+            <input type="text" id="add-site-name" required placeholder="e.g. Website Name">
+          </div>
+
+          <div class="form-group">
+            <label for="add-site-url">Website URL</label>
+            <input type="url" id="add-site-url" required placeholder="https://websitename.com">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="add-site-interval">Check Interval (Minutes)</label>
+              <input type="number" id="add-site-interval" min="1" max="1440" required value="10">
+            </div>
+
+            <div class="form-group">
+              <label for="add-site-selector">CSS Selector <span class="optional">(Optional)</span></label>
+              <input type="text" id="add-site-selector" placeholder="e.g. .entry-content, main, #news">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="add-site-whatsapp">WhatsApp Number <span class="optional">(Optional)</span></label>
+            <div class="input-with-button" style="display: flex; gap: 8px;">
+              <input type="text" id="add-site-whatsapp" placeholder="e.g. 919876543210 (Include country code without +)" style="flex: 1;">
+              <button type="button" class="btn btn-secondary" id="btn-add-test-whatsapp" style="padding: 0 16px; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; height: var(--input-height, 42px); flex-shrink: 0; white-space: nowrap;">
+                <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                <span>Test</span>
+              </button>
+            </div>
+            <small class="form-help">Enter your WhatsApp number to receive change alerts for this website.</small>
+          </div>
+          <small class="form-help-block">When added, the tool will perform an immediate initial scan to store the
+            baseline version.</small>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Monitor</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Javascript -->
+  <script src="app.js"></script>
+</body>
+
+</html>

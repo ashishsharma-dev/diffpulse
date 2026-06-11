@@ -1,0 +1,17 @@
+{
+  "name": "website-diff-detector",
+  "version": "1.0.0",
+  "description": "A local web page change detector with visual diff history and OS notifications.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "axios": "^1.7.2",
+    "cheerio": "^1.0.0-rc.12",
+    "diff": "^5.2.0",
+    "node-notifier": "^10.0.1"
+  }
+}
