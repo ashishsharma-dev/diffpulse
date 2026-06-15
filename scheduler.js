@@ -198,24 +198,38 @@ function analyzeHtmlDiff(diffLinesArray) {
 
 // Send message to WhatsApp via whatstar.co.in API
 async function sendWhatsAppNotification(to, siteName, summaryText) {
+  if (!to || to.trim() === '') return;
+
+  // Split by comma, semicolon, or space
+  const numbers = to.split(/[\s,;]+/).map(n => n.trim()).filter(n => n.length > 0);
+  if (numbers.length === 0) return;
+
+  const errors = [];
   const message = `📢 DiffPulse Alert: *${siteName}* has changed!\n\n📋 Summary of changes:\n${summaryText}\n\nCheck dashboard: http://localhost:3000`;
-  
-  try {
-    const response = await axios.post('https://whatstar.co.in/api/whatsapp-web/send-message', {
-      app_key: 'f6661ecb-094d-4f52-a4b6-d59f8b871bc9',
-      auth_key: 'vthAQkMncDLxnEmiU3QoPtRfUlBrpvCu2',
-      to: to,
-      type: 'text',
-      message: message
-    }, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    console.log(`WhatsApp notification sent successfully to ${to}. Response status:`, response.status);
-  } catch (error) {
-    console.error(`Error sending WhatsApp notification:`, error.response ? error.response.data : error.message);
-    throw error;
+
+  for (const number of numbers) {
+    try {
+      const response = await axios.post('https://whatstar.co.in/api/whatsapp-web/send-message', {
+        app_key: 'f6661ecb-094d-4f52-a4b6-d59f8b871bc9',
+        auth_key: 'vthAQkMncDLxnEmiU3QoPtRfUlBrpvCu2',
+        to: number,
+        type: 'text',
+        message: message
+      }, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log(`WhatsApp notification sent successfully to ${number}. Response status:`, response.status);
+    } catch (error) {
+      const errMsg = error.response ? JSON.stringify(error.response.data) : error.message;
+      console.error(`Error sending WhatsApp notification to ${number}:`, errMsg);
+      errors.push({ number, error: errMsg });
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Failed to send WhatsApp message to: ${errors.map(e => `${e.number} (${e.error})`).join(', ')}`);
   }
 }
 
